@@ -1,11 +1,11 @@
-#include <ncurses.h>
-#include <fstream>
-#include <list>
-#include <thread>
+#include <ncurses.h> //para cambiar coordenadas de la consola, equivalente a windows.h
+#include <fstream> //manejo de archivos
+#include <list> //listas
+#include <thread> //hilos
 #include <mutex>
 #include <cstdlib>
 #include <ctime>
-#include <chrono>
+#include <chrono> //para pausar el tiempo
 using namespace std;
 
 #define COORDPISO 30
@@ -13,8 +13,6 @@ using namespace std;
 
 mutex mtx;
 bool gameover = false;
-
-
 
 int obtenerAlto() {
   int alto, ancho;
@@ -28,18 +26,20 @@ int obtenerAncho() {
   return ancho;
 }
 
+//inicializar el modo color y definir los colores
+//que se utilizaran, asi como los pares texto-fondo
 void iniciarColores()
 {
   start_color();
-  init_color(COLOR_BLACK, 0,0,0);
-  init_pair(1, COLOR_BLACK, COLOR_WHITE);
-  init_pair(2, COLOR_WHITE, COLOR_BLACK);
-  init_pair(3, COLOR_WHITE, COLOR_RED);
-  init_pair(4, COLOR_WHITE, COLOR_BLUE);
+  init_color(COLOR_BLACK, 0,0,0); //inicializar el rgb del negro
+  init_pair(1, COLOR_BLACK, COLOR_WHITE); //negro sobre blanco
+  init_pair(2, COLOR_WHITE, COLOR_BLACK); //blanco sobre negro
+  init_pair(3, COLOR_WHITE, COLOR_RED); //blanco sobre rojo
+  init_pair(4, COLOR_WHITE, COLOR_BLUE); //blanco sobre azul
 }
 
 void pintarEscenario() {
-  bkgd(COLOR_PAIR(1)); // Fondo blanco brillante, texto negro
+  bkgd(COLOR_PAIR(1)); // Fondo blanco, texto negro
   move(COORDPISO, 0);
   for (int i = 0; i < obtenerAncho(); i++) {
     addch(ACS_HLINE); // Este es el suelo
@@ -47,7 +47,7 @@ void pintarEscenario() {
 }
 
 void pantallaIntroduccion() {
-  // Cambiar el color de fondo a azul y texto a blanco
+  // Cambiar el color a blanco sobre azul
   bkgd(COLOR_PAIR(4));
 
   // Obtener las dimensiones actuales de la consola
@@ -64,12 +64,12 @@ void pantallaIntroduccion() {
   printw("BIENVENIDO AL JUEGO DINO SURVIVAL");
 
   move(mitadAlto - 2, mitadAncho - 15);
-  printw("  CREADO POR APRIL Y MOISES");
+  printw("   CREADO POR APRIL Y MOISES");
 
   move(mitadAlto, mitadAncho - 15);
   printw("ASEGURATE DE MAXIMIZAR LA VENTANA");
 
-  move(mitadAlto + 2, mitadAncho - 12);
+  move(mitadAlto + 2, mitadAncho - 15);
   printw(" Y PRESIONA ENTER PARA EMPEZAR");
 
 
@@ -105,12 +105,11 @@ private:
   int x, y;
 public:
   Dinosaurio(): x(15), y(COORDPISO-10) {}
-  //void Sleep(int);
   void pintar();
   void borrar();
   void moverPata1(); // Animar las patas del dinosaurio
   void moverPata2();
-  void saltar(int=13);
+  void saltar();
   int X() { return x; }
   int Y() { return y; }
 };
@@ -119,16 +118,15 @@ public:
 
 void Dinosaurio::pintar() {
   mtx.lock();
-  mvprintw(y,x,"     %c%c%c%c%c%c%c \n", 219,219,219,219,219,219,220);
-  mvprintw(y+1,x, "     %c%c%c%c%c%c%c \n", 219,220,219,219,219,219,219);
-  mvprintw(y+2,x, "     %c%c%c%c%c%c%c \n", 219,219,219,219,220,220,220);
-  mvprintw(y+3,x, "     %c%c%c%c    \n", 219,219,219,220);
-  mvprintw(y+4,x, "%c   %c%c%c%c%c%c%c  \n", 219,219,219,219,219,219,223,219);
-  mvprintw(y+5,x, "%c%c %c%c%c%c%c%c    \n", 219,219,219,219,219,219,219,219);
-  mvprintw(y+6,x, "%c%c%c%c%c%c%c%c%c    \n", \
-            219,219,219,219,219,219,219,219,219);
-  mvprintw(y+7,x, " %c%c%c%c%c%c%c%c    \n", 219,219,219,219,219,219,219,219);
-  mvprintw(y+8,x, "  %c%c%c%c%c%c     \n", 219,219,219,219,219,223);
+  mvprintw(y,x,   "     %c%c%c%c%c%c%c", 219,219,219,219,219,219,220);
+  mvprintw(y+1,x, "     %c%c%c%c%c%c%c", 219,220,219,219,219,219,219);
+  mvprintw(y+2,x, "     %c%c%c%c%c%c%c", 219,219,219,219,220,220,220);
+  mvprintw(y+3,x, "     %c%c%c%c   ", 219,219,219,220);
+  mvprintw(y+4,x, "%c   %c%c%c%c%c%c%c ", 219,219,219,219,219,219,223,219);
+  mvprintw(y+5,x, "%c%c %c%c%c%c%c%c   ", 219,219,219,219,219,219,219,219);
+  mvprintw(y+6,x, "%c%c%c%c%c%c%c%c%c   ", 219,219,219,219,219,219,219,219,219);
+  mvprintw(y+7,x, " %c%c%c%c%c%c%c%c   ", 219,219,219,219,219,219,219,219);
+  mvprintw(y+8,x, "  %c%c%c%c%c%c    ", 219,219,219,219,219,223);
   mvprintw(y+9,x, "   %c  %c     ", 219,219);
   refresh();
   mtx.unlock();
@@ -261,7 +259,7 @@ bool Cactus::colision(Dinosaurio &d) {
   return (((x+1 > d.X()+2 && x+1 < d.X()+6) || (x+ancho > d.X()+2 && x+ancho < d.X()+11)) && (y <= d.Y()+9));
 }
 
-int Cactus::vel;
+int Cactus::vel; //pata poder utilizar la variable velocidad
 
 class Puntaje {
 private:
@@ -269,7 +267,6 @@ private:
     bool colorBlanco; // Estado actual del color (blanco o negro)
 public:
     Puntaje() : puntaje(0), colorBlanco(true) {}
-
     void incrementar();
     void mostrar();
     void verificarColor(Dinosaurio&, Cactus&);
@@ -329,7 +326,6 @@ void Nube::borrar() {
     move(y + 3, x); printw("                ");  // Borra la cuarta línea de la nube
     mtx.unlock();
 }
-// Función para pintar la nube
 
 void Nube::pintar() {
     mtx.lock();
@@ -344,7 +340,6 @@ void Nube::pintar() {
     mtx.unlock();
 }
 
-// Función para mover la nube
 void Nube::mover() {
     x--;
     if (x <= 1) {
@@ -399,19 +394,21 @@ void moverNubes(list<Nube>& nubeList) {
     }
 }
 
+//programa principal
 int main()
 {
-  initscr();
-  keypad(stdscr, TRUE);
-  curs_set(0);
-  noecho();
+  initscr(); //iniciar el modo ncurses
+  keypad(stdscr, TRUE); //permitir deteccion de las flecha hacia arriba
+  curs_set(0); //ocultar el cursor
+  noecho(); //no mostrar la entrada del teclado
   iniciarColores();
   pantallaIntroduccion();
-  clear();
+  clear(); //borrar pantalla
   
   cbreak();
   halfdelay(1);
-  
+
+  //leer el puntaje maximo del archivo
   int puntajeMaximo;
   ifstream archivo("puntajeMax.txt");
   if (archivo.is_open()) {
@@ -422,6 +419,7 @@ int main()
   }
   archivo.close();
 
+  //bucle principal, se repite cada vez que pierdes
   while (true) {
     Cactus::vel = 1 + rand() % 3;
     gameover = false;
@@ -456,7 +454,6 @@ int main()
     if (puntaje.obtenerPuntaje() > puntajeMaximo) {
     puntajeMaximo = puntaje.obtenerPuntaje();
     move(1, 60); printw("HI %05d", puntajeMaximo);
-    // escribir el nuevo puntaje maximo en un archivo
     ofstream archivo("puntajeMax.txt");
     if (archivo.is_open()){
       archivo << puntajeMaximo;
