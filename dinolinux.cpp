@@ -97,6 +97,19 @@ void pantallaIntroduccion() {
   do {
     Sleep(1000ms);
   } while( getch() != 10);
+
+  clear();
+  move(mitadAlto-3, 0);
+  printw("NOTA: para que los graficos se muestren correctamente, la "
+	"codificacion debe estar establecida en IBM50, la cual es una "
+	"codificacion obsoleta. Busca en las opciones de tu terminal "
+	"si es posible cambiar dicha configuracion.\n\n"
+	"Ademas, es posible que debas reducir el tamano del texto de "
+	"la terminal  para que el juego no se haga injugable.\n\n"
+	"Presiona ENTER para continuar...");
+  do {
+    Sleep(1000ms);
+  } while( getch() != 10);
 }
 
 
@@ -109,7 +122,7 @@ public:
   void borrar();
   void moverPata1(); // Animar las patas del dinosaurio
   void moverPata2();
-  void saltar();
+  void saltar(int);
   int X() { return x; }
   int Y() { return y; }
 };
@@ -355,7 +368,7 @@ void Nube::mover() {
 void moverDino(Dinosaurio &dino) {
   while (!gameover) {
     if ( getch() == KEY_UP)
-      dino.saltar();
+      dino.saltar(13);
     else {
       dino.moverPata1();
       Sleep(40ms);
@@ -404,7 +417,7 @@ int main()
   iniciarColores();
   pantallaIntroduccion();
   clear(); //borrar pantalla
-  
+
   cbreak();
   halfdelay(1);
 
